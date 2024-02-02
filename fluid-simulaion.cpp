@@ -62,6 +62,67 @@ static void project(float *velocX, float *velocY, float *p, float *div, int iter
     //set bound
 }
 
+// advection - transferring velocities
+void advect(int b, float *d, float *d0, float *velocX, float *velocY, float dt, int n) {
+    float i0, i1, j0, j1, k0, k1;
+    float dtx = dt * (n - 2);
+    float dty = dt * (n - 2);
+    float dtz = dt * (n - 2);
+    float s0, s1, t0, t1, u0, u1;
+    float tmp1, tmp2, tmp3, x, y, z;
+    float nfloat = n;
+    float ifloat, jfloat, kfloat;
+    int i, j, k;
+    
+    for (k = 1, kfloat = 1; k < n - 1; k++, kfloat++) {
+        for (j = 1, jfloat = 1; j < n - 1; j++, jfloat++) {
+            for (i = 1, ifloat = 1; i < n - 1; i++, ifloat++) {
+                tmp1 = dtx * velocX[getIndex(i, j, k)];
+                tmp2 = dty * velocY[getIndex(i, j, k)];
+                tmp3 = dtz * velocZ[getIndex(i, j, k)];
+                x = ifloat - tmp1;
+                y = jfloat - tmp2;
+                z = kfloat - tmp3;
+                
+                if (x < 0.5f) x = 0.5f;
+                if (x > nfloat + 0.5f) x = nfloat + 0.5f;
+                i0 = floorf(x);
+                i1 = i0 + 1.0f;
+                if (y < 0.5f) y = 0.5f;
+                if (y > nfloat + 0.5f) y = nfloat + 0.5f;
+                j0 = floorf(y);
+                j1 = j0 + 1.0f;
+                if (z < 0.5f) z = 0.5f;
+                if (z > nfloat + 0.5f) z = nfloat + 0.5f;
+                k0 = floorf(z);
+                k1 = k0 + 1.0f;
+                
+                s1 = x - i0;
+                s0 = 1.0f - s1;
+                t1 = y - j0;
+                t0 = 1.0f - t1;
+                u1 = z - k0;
+                u0 = 1.0f - u1;
+                
+                int i0i = i0;
+                int i1i = i1;
+                int j0i = j0;
+                int j1i = j1;
+                int k0i = k0;
+                int k1i = k1;
+                
+                d[getIndex(i, j, k)] =
+                    s0 * (t0 * (u0 * d0[getIndex(i0i, j0i, k0i)] + u1 * d0[getIndex(i0i, j0i, k1i)]) +
+                          t1 * (u0 * d0[getIndex(i0i, j1i, k0i)] + u1 * d0[getIndex(i0i, j1i, k1i)])) +
+                    s1 * (t0 * (u0 * d0[getIndex(i1i, j0i, k0i)] + u1 * d0[getIndex(i1i, j0i, k1i)]) +
+                          t1 * (u0 * d0[getIndex(i1i, j1i, k0i)] + u1 * d0[getIndex(i1i, j1i, k1i)]));
+            }
+        }
+    }
+    // set bound
+}
+
+
 class Fluid{
     public:
         int size;
