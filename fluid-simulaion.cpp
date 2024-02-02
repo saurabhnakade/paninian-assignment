@@ -1,7 +1,33 @@
 #include<iostream>
 
-int getIndex(int x,int y,int n){
+static int getIndex(int x,int y,int n){
     return x+(y*n);
+}
+
+static void lin_solve(int b, float *x, float *x0, float a, float c, int iter, int n){
+    float cRecip = 1.0 / c;
+    for (int k = 0; k < iter; k++) {
+        for (int j = 1; j < n - 1; j++) {
+            for (int i = 1; i < n - 1; i++) {
+                x[getIndex(i, j, n)] =
+                    (x0[getIndex(i, j, n)]
+                        + a*
+                        ( x[getIndex(i+1, j  , n )]
+                            +x[getIndex(i-1, j  , n  )]
+                            +x[getIndex(i  , j+1, n  )]
+                            +x[getIndex(i  , j-1, n  )]
+                                +x[getIndex(i  , j  , n)]
+                        )) * cRecip;
+            }
+        }
+    }
+}
+
+
+// diffuses any set of values x , depending upon it's previous values x0 , diffusion amount and time stamp
+static void diffuse(int b, float *x, float *x0, float diff, float dt, int iter, int n) {
+    float a=dt*diff*(n-2)*(n-2);
+    lin_solve(b, x, x0, a, 1 + 6 * a, iter, n);
 }
 
 class Fluid{
